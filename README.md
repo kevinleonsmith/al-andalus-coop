@@ -10,6 +10,8 @@ Built with **vanilla HTML/CSS/JS + Three.js** on the client; the optional co-op 
 
 ### ▶ [Play it live](https://al-andalus-coop-production.up.railway.app)
 
+![Al-Andalus title screen](docs/title-screen.png)
+
 ---
 
 ## Play
