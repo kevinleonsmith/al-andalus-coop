@@ -8,6 +8,8 @@ small **co-op server** and build together.
 Built with **vanilla HTML/CSS/JS + Three.js** on the client; the optional co-op server is
 **Node + `ws`**. No build step, no framework.
 
+### ▶ [Play it live](https://al-andalus-coop-production.up.railway.app)
+
 ---
 
 ## Play
