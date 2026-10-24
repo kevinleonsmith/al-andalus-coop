@@ -1,0 +1,16 @@
+{
+  "name": "al-andalus-coop",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Co-op server for Al-Andalus: Shadows of the Reconquista (serves the client + WebSocket relay).",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

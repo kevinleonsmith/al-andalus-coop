@@ -1,0 +1,9 @@
+                                                           Recommended Tech Stack
+Layer	                    Technology	                                           Why It Fits
+Engine	                       Unity (C#)	                                            Robust RTS tools, terrain system, cross-platform support
+Backend	               Node.js + Socket.IO	                            Real-time multiplayer synchronization
+Data	                       PostgreSQL + Redis	                              Handle complex faction relationships and fast battle state caching
+Frontend	               React + Tailwind	                                           Clean UI for city/diplomacy screens
+Procedural Gen	       Godot (GDScript)	                                Superior Iberian terrain generation with erosion simulation
+
+

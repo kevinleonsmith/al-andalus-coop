@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Al-Andalus: Shadows of the Reconquista</title>
+<link rel="stylesheet" href="style.css" />
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
+</script>
+</head>
+<body>
+  <canvas id="game"></canvas>
+
+  <!-- In-world HUD -->
+  <div id="crosshair" class="hidden">+</div>
+  <div id="info" class="hidden">
+    <div id="clock">Dawn</div>
+    <div id="coords">0, 0, 0</div>
+    <div id="saved"></div>
+  </div>
+  <div id="hotbar" class="hidden"></div>
+
+  <div id="stats" class="hidden">
+    <div class="stat"><span class="lbl">Health</span><div class="bar"><div id="hpFill" class="fill hp"></div></div></div>
+    <div class="stat"><span class="lbl">Food</span><div class="bar"><div id="foodFill" class="fill food"></div></div></div>
+    <div class="stat"><span class="lbl">Dates</span><span id="dateCount" class="val">0</span><span class="hint">E to eat</span></div>
+    <div class="stat"><span class="lbl">Gear</span><span id="gear" class="val">Fists</span></div>
+  </div>
+
+  <div id="hurt"></div>
+
+  <!-- Co-op chat -->
+  <div id="chat" class="hidden">
+    <div id="chatLog"></div>
+    <input id="chatInput" class="hidden" type="text" maxlength="120" autocomplete="off"
+           placeholder="Say something…  (Enter to send · Esc to cancel)" />
+  </div>
+
+  <!-- Touch controls (mobile) -->
+  <div id="touch">
+    <div id="joy"><div id="knob"></div></div>
+    <div id="tbtns">
+      <div class="trow">
+        <button id="bCraft" class="tb sm">Craft</button>
+        <button id="bBuild" class="tb sm">Build</button>
+        <button id="bEat" class="tb sm">Eat</button>
+        <button id="bFly" class="tb sm">Fly</button>
+        <button id="bChat" class="tb sm">Chat</button>
+        <button id="bPause" class="tb sm">&#10073;&#10073;</button>
+      </div>
+      <div class="trow">
+        <button id="bPlace" class="tb">Place</button>
+        <button id="bMine" class="tb">Mine</button>
+        <button id="bJump" class="tb">Jump</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Title screen -->
+  <div id="title" class="overlay">
+    <div class="card">
+      <h1>Al-Andalus</h1>
+      <p class="sub">Shadows of the Reconquista — a blocky survival-builder in 8th-century Iberia</p>
+
+      <div id="worlds">
+        <div class="wtitle">Your worlds (solo)</div>
+        <div id="worldList"></div>
+        <div id="newWorldRow">
+          <input id="worldName" type="text" maxlength="28" placeholder="Name a new world…" autocomplete="off" />
+          <button id="createWorldBtn">Create</button>
+        </div>
+      </div>
+
+      <button id="beginBtn">Enter World</button>
+
+      <div id="coop">
+        <div class="wtitle">Play together (co-op)</div>
+        <div id="coopRow">
+          <input id="coopName" type="text" maxlength="16" placeholder="Your name" autocomplete="off" />
+          <input id="coopRoom" type="text" maxlength="24" placeholder="Shared world name" autocomplete="off" />
+        </div>
+        <input id="coopServer" type="text" placeholder="Server (blank = this site · else wss://your-app.up.railway.app)" autocomplete="off" />
+        <button id="coopJoin" class="ghost coopbtn">Join Co-op</button>
+        <div id="netMsg" class="netmsg"></div>
+      </div>
+      <div class="controls">
+        <div><b>Move</b> W A S D</div>
+        <div><b>Look</b> Mouse</div>
+        <div><b>Jump</b> Space &nbsp; <b>Sprint</b> Shift</div>
+        <div><b>Break</b> Left-click &nbsp; <b>Place</b> Right-click</div>
+        <div><b>Select block</b> 1–0 or scroll</div>
+        <div><b>Eat date</b> E &nbsp; <b>Fly</b> F</div>
+        <div><b>Craft</b> C &nbsp; <b>Build</b> B</div>
+        <div><b>Pause</b> Esc &nbsp; <b>Mute</b> M</div>
+        <div><b>Chat</b> T <span style="color:var(--muted)">(co-op)</span></div>
+      </div>
+      <p class="note">Each world keeps its own seed, terrain and save. Gather clay, stone and timber; raise your own medina.<br/>If the mouse doesn't lock, hold-drag to look and click to break/place.</p>
+    </div>
+  </div>
+
+  <!-- Death screen -->
+  <div id="death" class="overlay hidden">
+    <div class="card">
+      <h2>You have fallen</h2>
+      <p class="sub">The night took you. Your world and your medina remain — rise again at the shore.</p>
+      <button id="respawnBtn">Respawn</button>
+    </div>
+  </div>
+
+  <!-- Crafting -->
+  <div id="craft" class="overlay hidden">
+    <div class="card wide">
+      <h2>Crafting</h2>
+      <p class="sub">Spend what you've gathered. Press <b>C</b> or <b>Esc</b> to close.</p>
+      <div id="craftList"></div>
+    </div>
+  </div>
+
+  <!-- Structures -->
+  <div id="build" class="overlay hidden">
+    <div class="card wide">
+      <h2>Structures</h2>
+      <p class="sub">Aim at the ground <em>before</em> opening this, then stamp. Press <b>B</b> or <b>Esc</b> to close.</p>
+      <div id="buildList"></div>
+    </div>
+  </div>
+
+  <!-- Pause screen -->
+  <div id="pause" class="overlay hidden">
+    <div class="card">
+      <h2>Paused</h2>
+      <button id="resumeBtn">Resume</button>
+      <button id="menuBtn" class="ghost">Save &amp; quit to world menu</button>
+    </div>
+  </div>
+
+  <script type="module" src="script.js"></script>
+</body>
+</html>

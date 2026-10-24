@@ -1,0 +1,171 @@
+You are an expert gamemaker, you will Build a game called *Al-Andalus: Shadows of the Reconquista* is a character-driven historical RTS set during the 
+ centuries of Moorish rule in the Iberian Peninsula. Players will navigate the complex political, religious, and cultural landscape 
+ of medieval Spain through the eyes of a customizable protagonist whose choices shape both their personal story and potentially the course of
+ history. You can use a Tech stack of Unity, Node.js, Socket.IO, PostgreSQL + Redis, React + Tailwind, Godot (GDScript). Age of Empires type of game for mac
+ and pc. 
+ 
+ 
+ Web App Type:  Build a game called *Al-Andalus: Shadows of the Reconquista* is a character-driven historical RPG set during the   centuries of Moorish rule in the Iberian Peninsula. Players will navigate the complex political, religious, and cultural landscape  of medieval Spain through the eyes of a customizable protagonist whose choices shape both their personal story and potentially the course of  history.  Age of Empires type of game for mac  and pc. 
+Target Audience: Gamers
+Core Problem to Solve: The need for character-driven historical RPG
+User Input Mechanism: Game play
+Desired Output/Result: Start the game
+Visual Style/Colour Scheme: Black, copper, green gradient
+
+You are a senior frontend UI designer and web app architect.
+
+Using ONLY the variables defined above, create a modern, polished, beginner-friendly web application.
+
+IMPORTANT TECH RULES (NO EXCEPTIONS):
+- Use ONLY vanilla HTML, CSS, and JavaScript
+- NO React, NO JSX, NO frameworks
+- Output THREE files:
+  1) index.html
+  2) style.css
+  3) script.js
+- The app must work when uploaded directly to Hostinger
+- Everything must be client-side (no backend)
+- Use clean, readable, production-quality CSS
+- Do NOT rely on browser default styles
+
+
+
+────────────────────────
+APP PURPOSE
+────────────────────────
+
+The app must clearly communicate:
+- What it does
+- Who it is for
+- The main benefit to the user
+
+All copy must be simple, friendly, and non-technical.
+
+────────────────────────
+DESIGN REQUIREMENTS (MANDATORY)
+────────────────────────
+
+Visual Style:
+- Follow the colour scheme defined above
+- Modern SaaS-style design
+- Clean system UI fonts
+- Soft shadows and rounded cards
+- Plenty of whitespace
+
+Layout Rules:
+- Centered main container (max-width: 1100px)
+- Clear visual sections in this order:
+  1) Header (title + short description)
+  2) Input section
+  3) Results dashboard
+- Results must be displayed as cards
+- Cards must be arranged in a responsive grid
+- Strong visual hierarchy (title > subtitle > content)
+
+UI Components:
+- Large textarea input
+- Clear primary action button (if applicable)
+- Card-based stats/results
+- Subtle hover effects
+- Smooth CSS-only transitions
+
+────────────────────────
+LOGIC REQUIREMENTS
+────────────────────────
+
+- All logic must be implemented in JavaScript
+- Update results dynamically when user input changes
+- Mock any “AI-style” feedback using simple heuristics
+- Ensure fast, responsive updates with no page reloads
+
+────────────────────────
+OUTPUT FORMAT (STRICT)
+────────────────────────
+
+Output the files in this exact order:
+
+1️⃣ index.html  
+2️⃣ style.css  
+3️⃣ script.js  
+
+Do NOT explain your reasoning.  
+Do NOT add commentary.  
+Do NOT add instructions.  
+Only output the files.
+
+If user selected "Spreadsheet" above, ensure the following requirements are met “DO NOT MAKE USE HTML,CSS,JS ETC ONLY USE EXCEL FORMAT IF SPREADSHEET IS MENTIONED ABOVE:
+
+General Spreadsheet Builder Prompt (for your app)
+You are a professional spreadsheet designer and data-structure expert.
+Create a fully functional, professionally designed Excel spreadsheet based on the user’s inputs (spreadsheet purpose, categories, time period, and labels).
+Spreadsheet Structure
+Sheet 1: Master Template
+* A reusable template that defines the structure for all other sheets
+* Includes multiple logical sections based on the user’s selected categories
+* Each section must support:
+    * Data input
+    * Automatic calculations
+    * Clear separation between sections
+Columns Required (for all sections):
+* Planned / Budgeted value
+* Actual / Recorded value
+* Difference or Variance (automatically calculated)
+
+Sheets 2–N: Repeating Period Sheets
+* One sheet per time period (e.g. months, weeks, quarters — based on user input)
+* Each sheet auto-populates from the master template
+* Totals calculated automatically per section and per sheet
+* Clear title at the top indicating the time period
+
+Final Sheet: Overview Dashboard
+* Aggregated totals across all periods
+* Summary metrics such as:
+    * Total inputs
+    * Total outputs
+    * Net balance or remaining value
+* Dynamic charts that update automatically from spreadsheet data
+
+Charts & Visuals (Mandatory)
+* At least one chart showing category distribution (e.g. pie or donut)
+* At least one chart comparing values across periods (e.g. bar chart)
+* At least one trend-based chart showing change over time (e.g. line graph)
+Charts must be:
+* Linked to live spreadsheet data
+* Clean, readable, and visually appealing
+* Suitable for a premium digital product
+
+Formula Requirements
+Use native Excel formulas only, including but not limited to:
+* SUM
+* IF
+* Subtraction and variance calculations
+* Percentage calculations
+* Automatic rollups from template → period sheets → dashboard
+The spreadsheet must automatically calculate:
+* Section totals
+* Period totals
+* Overall totals
+* Remaining or net values
+
+Design & Styling Standards
+* Clear visual hierarchy with:
+    * Bold section headers
+    * Alternating row shading for readability
+* Consistent spacing and alignment
+* Modern, clean, premium appearance
+* Dashboard should look engaging, not plain or corporate
+
+Usability Requirements
+* Beginner-friendly and intuitive
+* Clearly labeled cells
+* Input cells left editable
+* Formula cells protected or locked
+* No confusing formulas exposed to the user
+
+Output Requirements
+* Deliver a fully built Excel (.xlsx) file structure
+* Include a short “How to Use” instruction section in the first sheet
+* Final result must be high quality and suitable for selling as a premium digital download (e.g. Etsy, Gumroad, personal website)
+
+Generate the complete app now.
+
