@@ -7,7 +7,7 @@ import * as THREE from 'three';
 /* ============================================================
    WORLD CONSTANTS
    ============================================================ */
-const SX = 96, SZ = 96, SY = 52;   // world size (blocks)
+const SX = 160, SZ = 160, SY = 72;  // world size (blocks) — a wide, deep realm
 const CH = 16;                      // chunk width/depth
 const CULL_DIST = 150;              // hide chunks beyond this (perf)
 const SEA_LEVEL = 13;
@@ -15,9 +15,8 @@ let SEED = 1337;                    // overwritten per active world at load
 const WATER = 11;
 
 const HOTBAR_TYPES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-const WORLDS_KEY = 'andalus_worlds_v1';   // registry of named worlds
+const WORLDS_KEY = 'andalus_worlds_v2';   // registry of named worlds (v2: larger map)
 const ACTIVE_KEY = 'andalus_active_world';
-const LEGACY_SAVE_KEY = 'andalus_voxel_save_v2';
 
 // hex -> [r,g,b] in 0..1
 const rgb = (h) => [((h >> 16) & 255) / 255, ((h >> 8) & 255) / 255, (h & 255) / 255];
@@ -34,7 +33,17 @@ const BLOCKS = {
   9:  { name: 'Wood',       top: rgb(0x7a5631), side: rgb(0x5c3f24), bottom: rgb(0x7a5631) },
   10: { name: 'Leaves',     top: rgb(0x46773e), side: rgb(0x3f6e38), bottom: rgb(0x356030) },
   11: { name: 'Water',      top: rgb(0x2f74a6), side: rgb(0x2b6ea0), bottom: rgb(0x255f8c) },
+  // ---- underground ores: a stone matrix speckled with the ore colour (`ore`) ----
+  12: { name: 'Coal',      top: rgb(0x8c8c88), side: rgb(0x82827e), bottom: rgb(0x767672), ore: rgb(0x26262b) },
+  13: { name: 'Iron Ore',  top: rgb(0x8c8c88), side: rgb(0x82827e), bottom: rgb(0x767672), ore: rgb(0xc08a5a) },
+  14: { name: 'Silver Ore',top: rgb(0x8c8c88), side: rgb(0x82827e), bottom: rgb(0x767672), ore: rgb(0xd9dde2) },
+  15: { name: 'Gold Ore',  top: rgb(0x8c8c88), side: rgb(0x82827e), bottom: rgb(0x767672), ore: rgb(0xe8c24a) },
+  16: { name: 'Gemstone',  top: rgb(0x7f7f84), side: rgb(0x75757a), bottom: rgb(0x6a6a6f), ore: rgb(0xc23a6b) },
+  17: { name: 'Rock Salt', top: rgb(0xb9b7b2), side: rgb(0xb0aea9), bottom: rgb(0xa5a39e), ore: rgb(0xf2f3f5) },
 };
+
+// new ore block ids (not placeable on the 10-slot hotbar — gathered for crafting/trade)
+const ORE_TYPES = [12, 13, 14, 15, 16, 17];
 
 /* ============================================================
    WORLD DATA + PROCEDURAL GENERATION
@@ -75,13 +84,58 @@ function heightAt(x, z) {
     sum += amp; amp *= 0.5; freq *= 2;
   }
   val = Math.pow(val / sum, 1.2);
-  return Math.floor(SEA_LEVEL - 4 + val * 16);
+  return Math.floor(SEA_LEVEL - 5 + val * 24);   // taller hills, deeper rock to mine
 }
 
 // low-frequency noise picks a biome per column
 function biomeAt(x, z) {
   const t = valueNoise(x / 72 + 1000, z / 72 + 2000);
   return t < 0.36 ? 'desert' : t > 0.6 ? 'forest' : 'plains';
+}
+
+// ore distribution: rarer and more precious the deeper you dig.
+// `chance` = probability a stone column seeds a vein; `size` = blocks per vein.
+// `ymax` caps the seed depth (absolute y); `shallow` bands it just under the surface.
+const ORE_VEINS = [
+  { id: 12, chance: 0.085, size: 9, ymin: 1, ymax: 999, salt: 17 },  // Coal — abundant, any depth
+  { id: 8,  chance: 0.060, size: 7, ymin: 1, ymax: 24,  salt: 31 },  // Copper — upper rock
+  { id: 13, chance: 0.050, size: 7, ymin: 1, ymax: 20,  salt: 53 },  // Iron — mid rock
+  { id: 17, chance: 0.045, size: 6, ymin: 1, ymax: 999, salt: 71, shallow: true }, // Rock salt — near surface
+  { id: 14, chance: 0.024, size: 5, ymin: 1, ymax: 14,  salt: 97 },  // Silver — deep
+  { id: 15, chance: 0.015, size: 4, ymin: 1, ymax: 9,   salt: 131 }, // Gold — deep & rare
+  { id: 16, chance: 0.008, size: 4, ymin: 1, ymax: 6,   salt: 173 }, // Gemstone — deepest, rarest
+];
+
+// stamp a small random-walk blob of ore into the stone, starting at (x,y,z)
+function placeVein(x, y, z, id, size) {
+  let bx = x, by = y, bz = z;
+  for (let i = 0; i < size; i++) {
+    if (inWorld(bx, by, bz) && world[idx(bx, by, bz)] === 3) world[idx(bx, by, bz)] = id;
+    const r = hash2(bx * 13 + by * 7 + i * 101 + id, bz * 29 + by * 5 + i);
+    const dir = (r * 6) | 0;
+    if (dir === 0) bx++; else if (dir === 1) bx--;
+    else if (dir === 2) by++; else if (dir === 3) by--;
+    else if (dir === 4) bz++; else bz--;
+  }
+}
+
+function generateOres() {
+  for (let x = 0; x < SX; x++) {
+    for (let z = 0; z < SZ; z++) {
+      const h = heightAt(x, z);
+      const stoneTop = h - 4;                 // below the dirt/sand cap is solid rock
+      if (stoneTop < 2) continue;
+      for (const o of ORE_VEINS) {
+        if (hash2(x * 97 + o.salt, z * 131 + o.salt * 3) > o.chance) continue;
+        const lo = o.shallow ? Math.max(o.ymin, stoneTop - 5) : o.ymin;
+        const hi = Math.min(o.ymax, stoneTop);
+        if (hi < lo) continue;
+        const yr = hash2(x * 17 + o.salt * 7, z * 19 + o.salt * 11);
+        const cy = lo + ((yr * (hi - lo + 1)) | 0);
+        placeVein(x, cy, z, o.id, o.size);
+      }
+    }
+  }
 }
 
 function generateTerrain() {
@@ -134,6 +188,7 @@ function generateTerrain() {
       setBlockRaw(x, topY + 1, z, 10);
     }
   }
+  generateOres();
 }
 
 function applyEdits() {
@@ -189,7 +244,7 @@ scene.add(highlight);
    TEXTURE ATLAS  (pixel-art, generated on a canvas — no external files)
    ============================================================ */
 const TILE = 16, COLS = 8;
-const TEX_TYPES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+const TEX_TYPES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17];
 const TILES = {};  // type -> { top:{col,row}, side:{...}, bottom:{...} }
 let ROWS = 1;
 
@@ -247,6 +302,16 @@ function drawTile(ctx, ox, oy, type, kind) {
   } else if (type === 11) {                         // water ripples
     ctx.fillStyle = css(base, 1.22);
     for (let y = 2; y < TILE; y += 5) ctx.fillRect(ox, oy + y, TILE, 1);
+  } else if (def.ore) {                             // ore: stone matrix + mineral nuggets
+    for (let i = 0; i < 7; i++) px((srnd() * TILE) | 0, (srnd() * TILE) | 0, css(base, 0.68));
+    const nuggets = type === 16 ? 5 : type === 15 ? 6 : type === 17 ? 10 : 8;
+    for (let i = 0; i < nuggets; i++) {
+      const nx = (srnd() * (TILE - 1)) | 0, ny = (srnd() * (TILE - 1)) | 0;
+      px(nx, ny, css(def.ore, 1.0));
+      px(nx + 1, ny, css(def.ore, 0.78));
+      px(nx, ny + 1, css(def.ore, 0.78));
+      if (srnd() < 0.5) px(nx + 1, ny + 1, css(def.ore, 1.25));   // glint
+    }
   }
 }
 
@@ -501,9 +566,9 @@ function enableFallback() {
 }
 
 const inventory = {};
-for (const t of HOTBAR_TYPES) inventory[t] = 0;
+for (const t of [...HOTBAR_TYPES, ...ORE_TYPES]) inventory[t] = 0;
 const resetStartingKit = () => {
-  for (const t of HOTBAR_TYPES) inventory[t] = 0;
+  for (const t of [...HOTBAR_TYPES, ...ORE_TYPES]) inventory[t] = 0;
   inventory[5] = 40; inventory[6] = 40; inventory[7] = 30; inventory[8] = 30;
 };
 
@@ -614,7 +679,7 @@ function breakBlock() {
   setBlockRaw(x, y, z, 0);
   edits[idx(x, y, z)] = 0;
   netSendEdit(idx(x, y, z), 0);
-  if (HOTBAR_TYPES.includes(t)) inventory[t]++;
+  if (inventory[t] !== undefined) inventory[t]++;        // hotbar blocks and ores alike
   if (t === 10 && Math.random() < 0.3) player.dates++;   // palm fronds sometimes yield dates
   rebuildAround(x, z);
   updateHotbar();
@@ -962,6 +1027,15 @@ const RECIPES = [
   { name: 'Sandstone ×8', cost: { 4: 4 }, give: { 5: 8 }, desc: 'Bake beach sand into blocks' },
   { name: 'Azulejo ×4',   cost: { 4: 2, 8: 2 }, give: { 7: 4 }, desc: 'Green glazed tile' },
   { name: 'Terracotta ×4', cost: { 2: 4 }, give: { 6: 4 }, desc: 'Fire earth into terracotta' },
+  // ---- smelting & the souk: turn mined ore into gear, blocks and coin (dates) ----
+  { name: 'Iron Dagger',  cost: { 9: 1, 13: 2, 12: 1 }, once: 'dagger', desc: 'Melee damage 7 → 12' },
+  { name: 'Iron Sword',   cost: { 9: 2, 13: 4, 12: 2 }, once: 'sword',  desc: 'Melee damage → 20' },
+  { name: 'Iron Vest',    cost: { 13: 6, 12: 2 },       once: 'armor',  desc: 'Halves damage taken' },
+  { name: 'Gilt Azulejo ×6', cost: { 15: 1, 7: 2 }, give: { 7: 6 }, desc: 'Gold-leaf the glazed tile' },
+  { name: 'Cure with Salt', cost: { 17: 2 }, dates: 1, desc: 'Salt the harvest → +1 date' },
+  { name: 'Barter Silver',  cost: { 14: 3 }, dates: 3, desc: 'Trade silver at the souk → +3 dates' },
+  { name: 'Barter Gold',    cost: { 15: 2 }, dates: 6, desc: 'Trade gold at the souk → +6 dates' },
+  { name: 'Barter Gems',    cost: { 16: 1 }, dates: 10, desc: 'Sell a gemstone → +10 dates' },
 ];
 
 const costText = (cost) =>
@@ -975,6 +1049,7 @@ function craft(r) {
   for (const [k, v] of Object.entries(r.cost)) inventory[k] -= v;
   if (r.once) { player[r.once] = true; if (r.once === 'armor') netSendGear(); }
   if (r.give) for (const [k, v] of Object.entries(r.give)) inventory[k] += v;
+  if (r.dates) player.dates += r.dates;
   updateHotbar();
   updateStatsHUD();
   renderCraft();
@@ -982,6 +1057,13 @@ function craft(r) {
 
 function renderCraft() {
   craftListEl.innerHTML = '';
+  // ores never sit on the hotbar, so surface what's been mined here
+  const haul = ORE_TYPES.filter(t => inventory[t] > 0)
+    .map(t => `${BLOCKS[t].name} ×${inventory[t]}`);
+  const strip = document.createElement('div');
+  strip.className = 'oreHaul';
+  strip.textContent = haul.length ? 'Mined: ' + haul.join('  ·  ') : 'Mined: nothing yet — dig deep for ore.';
+  craftListEl.appendChild(strip);
   for (const r of RECIPES) {
     const owned = r.once && player[r.once];
     const row = document.createElement('div');
@@ -1344,7 +1426,7 @@ function loadWorlds() {
 function storeWorlds(list) {
   try { localStorage.setItem(WORLDS_KEY, JSON.stringify(list)); } catch (e) {}
 }
-function worldSaveKey(id) { return 'andalus_world_' + id; }
+function worldSaveKey(id) { return 'andalus_world_v2_' + id; }
 function makeId() {
   return Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36);
 }
@@ -1372,18 +1454,11 @@ function touchPlayed(id) {
   if (w) { w.played = Date.now(); storeWorlds(list); }
 }
 
-// Choose which world to load at page start; migrate the old single-slot save; seed a default.
+// Choose which world to load at page start; seed a default when none exist yet.
 function resolveActiveWorld() {
   const list = loadWorlds();
   if (list.length === 0) {
     const rec = createWorld('My Medina', SEED);      // SEED is still the legacy default here
-    try {
-      const legacy = localStorage.getItem(LEGACY_SAVE_KEY);
-      if (legacy) {
-        localStorage.setItem(worldSaveKey(rec.id), legacy);  // keep the player's existing world
-        localStorage.removeItem(LEGACY_SAVE_KEY);
-      }
-    } catch (e) {}
     setActive(rec.id);
     return rec;
   }
@@ -1433,7 +1508,7 @@ function loadSave() {
     if (typeof s.food === 'number') player.food = s.food;
     if (typeof s.dates === 'number') player.dates = s.dates;
     player.dagger = !!s.dagger; player.sword = !!s.sword; player.armor = !!s.armor;
-    if (s.inv) for (const t of HOTBAR_TYPES) inventory[t] = s.inv[t] ?? inventory[t];
+    if (s.inv) for (const t in inventory) inventory[t] = s.inv[t] ?? inventory[t];
     return true;
   } catch (e) { return false; }
 }

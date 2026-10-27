@@ -288,6 +288,11 @@ button.ghost:hover{ border-color:var(--green-bright); color:var(--green-bright);
   box-shadow:none; cursor:default; transform:none;
 }
 .recipe.owned{ border-color:rgba(47,160,127,.45); }
+.oreHaul{
+  font-size:12.5px; color:var(--copper-bright);
+  padding:10px 14px; border-radius:11px; margin-bottom:4px;
+  background:rgba(199,125,52,.08); border:1px solid rgba(199,125,52,.22);
+}
 
 /* ---- Touch controls (shown only on touch devices, in-game) ---- */
 #touch{ display:none; position:fixed; inset:0; z-index:11; pointer-events:none; }
