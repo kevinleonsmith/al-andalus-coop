@@ -29,7 +29,7 @@ const SAVE_DIR =
   (process.env.RAILWAY_VOLUME_MOUNT_PATH ? path.join(process.env.RAILWAY_VOLUME_MOUNT_PATH, 'worlds') : path.join(ROOT, 'worlds'));
 
 // Must mirror the client's WORLD CONSTANTS (script.js).
-const SX = 96, SZ = 96, SY = 52;
+const SX = 160, SZ = 160, SY = 72;   // must match the client's world size
 const CELLS = SX * SY * SZ;
 const SEA_LEVEL = 13, WATER = 11;
 const MAX_HP = 20;
@@ -66,7 +66,7 @@ function heightAt(seed, x, z) {
   let amp = 1, freq = 1 / 28, sum = 0, val = 0;
   for (let o = 0; o < 4; o++) { val += valueNoise(seed, x * freq, z * freq) * amp; sum += amp; amp *= 0.5; freq *= 2; }
   val = Math.pow(val / sum, 1.2);
-  return Math.floor(SEA_LEVEL - 4 + val * 16);
+  return Math.floor(SEA_LEVEL - 5 + val * 24);   // must match the client's heightAt
 }
 function biomeAt(seed, x, z) {
   const t = valueNoise(seed, x / 72 + 1000, z / 72 + 2000);
